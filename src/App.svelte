@@ -2,6 +2,27 @@
 	import Bar from "svelte-chartjs/src/Bar.svelte";
 	let paths = [];
 
+	let lightOn = false;
+	let lock = false;
+
+	let onOffMethod = async () => {
+		if (lightOn) {
+			await fetch("http://192.168.0.47:3017/turnon", {
+				method: "POST",
+			}).then(() => console.log("off"));
+			lightOn = !lightOn;
+		} else {
+			await fetch("http://192.168.0.47:3017/turnoff", {
+				method: "POST",
+			}).then(() => console.log("on"));
+			lightOn = !lightOn;
+		}
+		lock = true;
+		setTimeout(function () {
+			lock = false;
+		}, 1000);
+	};
+
 	const options = {
 		animation: false,
 		scales: {
@@ -38,6 +59,20 @@
 				let adjustedLength =
 					Math.floor(frequencyArray[i]) - (Math.floor(frequencyArray[i]) % 5);
 				paths[i] = adjustedLength;
+			}
+
+			for (var i = 0; i < 255; i++) {
+				if (
+					Math.floor(frequencyArray[i]) - (Math.floor(frequencyArray[i]) % 5) >
+						200 &&
+					!lock
+				) {
+					console.log(
+						Math.floor(frequencyArray[i]) - (Math.floor(frequencyArray[i]) % 5)
+					);
+					onOffMethod();
+					return;
+				}
 			}
 		};
 		doDraw();
